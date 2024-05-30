@@ -3,12 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="stylesheet" href="index.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>spotify-app</title>
     <script src="src/script.js" type="module"></script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <h1>display spotify profile</h1>
+      <section id='profile'>
+        <h2>logged in as <span id='displayName'></span></h2>
+        <span id='avatar'></span>
+        <ul>
+          <li>user id: <span id='id'></span></li>
+          <li>email: <span id='email'></span></li>
+          <li>spotify uri: <a id='uri'></a></li>
+          <li>link: <a id='url' href="#"></a></li>
+          <li>profile image: <span id='imgUrl'></span></li>
+        </ul>
+      </section>
   </body>
 </html>
