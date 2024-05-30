@@ -3,14 +3,39 @@ const clientId = "4ab54dd4daf04c39976a847c9066ce5d";
 const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
 
-if (!code) {
+let accessToken = localStorage.getItem("accessToken");
+const refreshToken = localStorage.getItem("refreshToken");
+
+if (!accessToken && !code) {
     redirectToAuthCodeFlow(clientId);
-} else {
-    const accessToken = await getAccessToken(clientId, code);
+} else if (code) {
+    const tokenData = await getAccessToken(clientId, code);
+    accessToken = tokenData.access_token;
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", tokenData.refresh_token);
     const profile = await fetchProfile(accessToken);
-    console.log(profile);
+    console.log("have code");
     populateUI(profile);
+} else if (accessToken) {
+    try {
+        const profile = await fetchProfile(accessToken);
+        console.log("dont have code but have accessToken");
+        populateUI(profile);
+    } catch (e) {
+        if (e.response.status === 401 && refreshToken) {
+            const tokenData = await refreshAccessToken(clientId, refreshToken);
+            accessToken = tokenData.access_token;
+            localStorage.setItem("accessToken", accessToken);
+            const profile = await fetchProfile(accessToken);
+            console.log("ajsdffjsd");
+            populateUI(profile);
+        } else {
+            redirectToAuthCodeFlow(clientId);
+        }
+    }
 }
+
+
 
 export async function redirectToAuthCodeFlow(clientId) {
     // TODO: Redirect to Spotify authorization page
@@ -68,8 +93,8 @@ async function getAccessToken(clientId, code) {
         body: params
     });
 
-    const { access_token } = await result.json();
-    return access_token;
+    
+    return await result.json();;
 }
 
 async function fetchProfile(token) {
@@ -80,6 +105,21 @@ async function fetchProfile(token) {
 
     return await result.json();
 
+}
+
+async function refreshAccessToken(clientId, refreshToken) {
+    const params = new URLSearchParams();
+    params.append("client_id", clientId);
+    params.append("grant_type", "refresh_token");
+    params.append("refresh_token", refreshToken);
+
+    const result = await fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded"},
+        body: params
+    });
+
+    return await result.json();
 }
 
 function populateUI(profile) {
