@@ -3,42 +3,21 @@ const clientId = "4ab54dd4daf04c39976a847c9066ce5d";
 const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
 
-let accessToken = localStorage.getItem("accessToken");
-const refreshToken = localStorage.getItem("refreshToken");
 
-if (!accessToken && !code) {
+
+if (!code) {
     redirectToAuthCodeFlow(clientId);
-} else if (code) {
-    const tokenData = await getAccessToken(clientId, code);
-    accessToken = tokenData.access_token;
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", tokenData.refresh_token);
+} else {
+    const accessToken = await getAccessToken(clientId, code);
+    console.log(accessToken)
     const profile = await fetchProfile(accessToken);
-    console.log("have code");
+    console.log(profile);
     populateUI(profile);
-} else if (accessToken) {
-    try {
-        const profile = await fetchProfile(accessToken);
-        console.log("dont have code but have accessToken");
-        populateUI(profile);
-    } catch (e) {
-        if (e.response.status === 401 && refreshToken) {
-            const tokenData = await refreshAccessToken(clientId, refreshToken);
-            accessToken = tokenData.access_token;
-            localStorage.setItem("accessToken", accessToken);
-            const profile = await fetchProfile(accessToken);
-            console.log("ajsdffjsd");
-            populateUI(profile);
-        } else {
-            redirectToAuthCodeFlow(clientId);
-        }
-    }
 }
 
 
-
 export async function redirectToAuthCodeFlow(clientId) {
-    // TODO: Redirect to Spotify authorization page
+ 
 
     const verifier = generateCodeVerifier(128);
     const challenge = await generateCodeChallenge(verifier);
@@ -77,7 +56,7 @@ async function generateCodeChallenge(codeVerifier) {
 }
 
 async function getAccessToken(clientId, code) {
-    // TODO: Get access token for code
+
     const verifier = localStorage.getItem("verifier");
 
     const params = new URLSearchParams();
@@ -94,11 +73,12 @@ async function getAccessToken(clientId, code) {
     });
 
     
-    return await result.json();;
+    const { access_token } = await result.json();
+    return access_token;
 }
 
 async function fetchProfile(token) {
-    // TODO: Call Web API
+
     const result = await fetch("https://api.spotify.com/v1/me", {
         method: "GET", headers: { Authorization: `Bearer ${token}`}
     });
@@ -107,24 +87,9 @@ async function fetchProfile(token) {
 
 }
 
-async function refreshAccessToken(clientId, refreshToken) {
-    const params = new URLSearchParams();
-    params.append("client_id", clientId);
-    params.append("grant_type", "refresh_token");
-    params.append("refresh_token", refreshToken);
-
-    const result = await fetch("https://accounts.spotify.com/api/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded"},
-        body: params
-    });
-
-    return await result.json();
-}
 
 function populateUI(profile) {
-    // TODO: Update UI with profile data
-    // setDisplayName(profile.display_name);
+
 
     document.getElementById("displayName").innerText = profile.display_name;
     document.getElementById("id").innerText = profile.id;
