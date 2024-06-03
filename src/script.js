@@ -73,14 +73,11 @@ async function getAccessToken(clientId, code) {
         body: params
     });
 
-    
     const { access_token } = await result.json();
-    console.log(access_token);
-
-    if (access_token != null) {
-        localStorage.setItem("accessing_t", access_token)
-    }
-
+    localStorage.setItem("accessing_t", access_token)
+    console.log("can get accesskey")
+    console.log(localStorage.getItem("accessing_t"),"ajfsd")
+   
 }
 
 // const getRefreshToken = async () => {
